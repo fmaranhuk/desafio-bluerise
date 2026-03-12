@@ -1,60 +1,44 @@
-// 1. Carrega as variáveis de ambiente (.env)
 require('dotenv').config();
-
-// 2. Importa as bibliotecas
 const express = require('express');
 const mongoose = require('mongoose');
 const redis = require('redis');
 const cors = require('cors');
 const path = require('path');
-
-// 3. Importa as rotas
 const routes = require('./src/routes');
 
 const app = express();
 
-/** * 4. CONFIGURAÇÕES E MIDDLEWARES 
- */
-
 app.use(cors());
 app.use(express.json());
-
-// Serve os arquivos estáticos da pasta public (Seu HTML/CSS)
 app.use(express.static(path.join(__dirname, 'public')));
 
-/** * 5. CONEXÃO COM O REDIS 
- * Ajustado para funcionar dinamicamente no Railway ou Local
- */
-const redisUrl = process.env.REDIS_URL || `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || '6379'}`;
+const redisUrl = process.env.REDIS_URL && process.env.REDIS_URL.startsWith('redis://')
+    ? process.env.REDIS_URL
+    : `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || '6379'}`;
 
 const redisClient = redis.createClient({
-    url: redisUrl
+    url: redisUrl,
+    password: process.env.REDIS_PASSWORD || undefined
 });
 
-redisClient.on('error', (err) => console.log('❌ Erro no Redis:', err));
+redisClient.on('error', (err) => console.log('Redis Error:', err.message));
 
 (async () => {
     try {
         await redisClient.connect();
-        console.log('✅ Conexão com Redis: OK!');
+        console.log('✅ Redis: OK');
     } catch (err) {
-        console.error('❌ Erro na conexão com Redis. Verifique as variáveis no Railway.');
+        console.log('⚠️ Redis: Offline (Servidor rodando)');
     }
 })();
 
-/** * 6. ROTAS DO SISTEMA
- */
 app.use(routes);
 
-/** * 7. CONEXÃO COM O MONGODB
- */
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("✅ Conexão com MongoDB: OK!"))
-    .catch((err) => console.error("❌ Erro ao conectar no MongoDB:", err));
+    .then(() => console.log("✅ MongoDB: OK"))
+    .catch((err) => console.error("❌ MongoDB: Error", err));
 
-/** * 8. INICIALIZAÇÃO DO SERVIDOR
- */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor rodando na porta ${PORT}`);
+    console.log(`🚀 Port: ${PORT}`);
 });
