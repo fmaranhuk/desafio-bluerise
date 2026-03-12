@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desafio Blue Rise</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div class="card">
+        <h2>Blue Rise</h2>
+
+        <div id="auth-form">
+            <input type="email" id="email" placeholder="E-mail">
+            <input type="password" id="password" placeholder="Senha">
+
+            <button onclick="entrar()">Login</button>
+            <button onclick="cadastrar()" style="background-color: #28a745; margin-top: 5px;">Criar Conta</button>
+        </div>
+
+        <div id="logged-in" style="display: none;">
+            <p style="color: green; font-weight: bold;">✅ Você está logado!</p>
+            <button class="logout" id="btnLogout" onclick="sair()" style="display: block;">Sair (Logout)</button>
+        </div>
+
+        <p id="msg"></p>
+    </div>
+
+    <script>
+        const msgElement = document.getElementById('msg');
+
+        // FUNÇÃO DE LOGIN
+        async function entrar() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                if (data.token) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('userId', data.user._id);
+
+                    showLoggedIn(true);
+                    msgElement.innerText = "Login realizado!";
+                    msgElement.style.color = "green";
+                } else {
+                    msgElement.innerText = "Erro: " + (data.error || "Falha no login");
+                    msgElement.style.color = "red";
+                }
+            } catch (err) {
+                msgElement.innerText = "Erro ao conectar com o servidor.";
+            }
+        }
+
+        // FUNÇÃO DE CADASTRO
+        async function cadastrar() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                msgElement.innerText = "Preencha todos os campos!";
+                msgElement.style.color = "orange";
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    msgElement.innerText = "Usuário cadastrado! Agora faça login.";
+                    msgElement.style.color = "blue";
+                } else {
+                    msgElement.innerText = "Erro: " + data.error;
+                    msgElement.style.color = "red";
+                }
+            } catch (err) {
+                msgElement.innerText = "Erro ao cadastrar.";
+            }
+        }
+
+        // FUNÇÃO DE LOGOUT
+        async function sair() {
+            const token = localStorage.getItem('token');
+            await fetch('http://localhost:3000/logout', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            localStorage.removeItem('token');
+            localStorage.removeItem('userId');
+            location.reload();
+        }
+
+        // Alterna a visualização
+        function showLoggedIn(isLoggedIn) {
+            document.getElementById('auth-form').style.display = isLoggedIn ? 'none' : 'block';
+            document.getElementById('logged-in').style.display = isLoggedIn ? 'block' : 'none';
+        }
+
+        // Verifica se já está logado ao carregar a página
+        if (localStorage.getItem('token')) {
+            showLoggedIn(true);
+        }
+    </script>
+</body>
+
+</html>
