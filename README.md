@@ -2,7 +2,7 @@
 
 Este projeto é uma solução completa de autenticação desenvolvida para o desafio técnico da **Blue Rise Group**. A aplicação utiliza **Node.js**, **MongoDB** e **Redis** para garantir um sistema de login robusto, seguro e escalável.
 
-🔗 **[CLIQUE AQUI PARA TESTAR A APLICAÇÃO ONLINE (DEPLOY)]**
+**APLICAÇÃO ONLINE (DEPLOY)**
 *desafio-bluerise-production.up.railway.app*
 
 ---
