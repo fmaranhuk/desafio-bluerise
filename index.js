@@ -5,7 +5,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const redis = require('redis');
-const cors = require('cors'); // Para permitir que o navegador acesse o servidor
+const cors = require('cors');
 const path = require('path');
 
 // 3. Importa as rotas
@@ -15,17 +15,20 @@ const app = express();
 
 /** * 4. CONFIGURAÇÕES E MIDDLEWARES 
  */
-app.use(cors()); // Habilita o CORS primeiro de tudo
-app.use(express.json()); // Permite ler JSON no corpo das requisições
 
-// Serve os arquivos estáticos da pasta 'public'
-// É essa linha que faz o http://localhost:3000/index.html funcionar!
+app.use(cors());
+app.use(express.json());
+
+// Serve os arquivos estáticos da pasta public (Seu HTML/CSS)
 app.use(express.static(path.join(__dirname, 'public')));
 
 /** * 5. CONEXÃO COM O REDIS 
+ * Ajustado para funcionar dinamicamente no Railway ou Local
  */
+const redisUrl = process.env.REDIS_URL || `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || '6379'}`;
+
 const redisClient = redis.createClient({
-    url: 'redis://localhost:6379'
+    url: redisUrl
 });
 
 redisClient.on('error', (err) => console.log('❌ Erro no Redis:', err));
@@ -35,7 +38,7 @@ redisClient.on('error', (err) => console.log('❌ Erro no Redis:', err));
         await redisClient.connect();
         console.log('✅ Conexão com Redis: OK!');
     } catch (err) {
-        console.error('❌ Não foi possível conectar ao Redis. Verifique se o Docker está rodando.');
+        console.error('❌ Erro na conexão com Redis. Verifique as variáveis no Railway.');
     }
 })();
 
@@ -53,6 +56,5 @@ mongoose.connect(process.env.MONGO_URI)
  */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
-    console.log(`👉 Tente acessar: http://localhost:${PORT}/index.html`);
+    console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });

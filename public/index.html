@@ -37,7 +37,8 @@
             const password = document.getElementById('password').value;
 
             try {
-                const response = await fetch('http://localhost:3000/login', {
+                // Rota relativa: funciona em qualquer domínio
+                const response = await fetch('/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
@@ -72,7 +73,7 @@
             }
 
             try {
-                const response = await fetch('http://localhost:3000/register', {
+                const response = await fetch('/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
@@ -94,22 +95,24 @@
         // FUNÇÃO DE LOGOUT
         async function sair() {
             const token = localStorage.getItem('token');
-            await fetch('http://localhost:3000/logout', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            try {
+                await fetch('/logout', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+            } catch (err) {
+                console.log("Erro ao avisar servidor do logout");
+            }
             localStorage.removeItem('token');
             localStorage.removeItem('userId');
             location.reload();
         }
 
-        // Alterna a visualização
         function showLoggedIn(isLoggedIn) {
             document.getElementById('auth-form').style.display = isLoggedIn ? 'none' : 'block';
             document.getElementById('logged-in').style.display = isLoggedIn ? 'block' : 'none';
         }
 
-        // Verifica se já está logado ao carregar a página
         if (localStorage.getItem('token')) {
             showLoggedIn(true);
         }
