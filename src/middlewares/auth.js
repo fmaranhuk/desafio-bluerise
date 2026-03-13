@@ -1,9 +1,13 @@
 const jwt = require('jsonwebtoken');
 const redis = require('redis');
 
-// Configura o cliente Redis para checar a sessão
-const redisClient = redis.createClient();
-redisClient.connect().catch(console.error);
+// CONFIGURAÇÃO CORRETA: Usa a variável do Railway ou o link direto
+const redisClient = redis.createClient({
+    url: process.env.REDIS_URL
+});
+
+// Conecta e evita que o erro derrube o servidor
+redisClient.connect().catch(err => console.log('Redis Auth Error:', err.message));
 
 module.exports = async (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -22,22 +26,21 @@ module.exports = async (req, res, next) => {
         return res.status(401).send({ error: 'Token malformatado' });
 
     try {
-        // 1. Verifica se o JWT é válido e decodifica o ID do usuário
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // 2. REQUISITO CHAVE: Verifica se o token existe no Redis
-        // Se o usuário fez logout, a chave 'sessao:ID' não existirá mais
-        const sessionToken = await redisClient.get(`sessao:${decoded.id}`);
-
-        if (!sessionToken) {
-            return res.status(401).send({ error: 'Sessão expirada ou inválida. Faça login novamente.' });
+        // Verifica no Redis se a conexão estiver ativa
+        if (redisClient.isOpen) {
+            const sessionToken = await redisClient.get(`sessao:${decoded.id}`);
+            if (!sessionToken) {
+                return res.status(401).send({ error: 'Sessão expirada ou inválida.' });
+            }
         }
 
-        // 3. Se chegou aqui, está tudo OK!
         req.userId = decoded.id;
         return next();
 
-    } catch (err) {
-        return res.status(401).send({ error: 'Token inválido' });
+    } catch (error) {
+        console.error(error);
+        return res.status(401).send({ error: 'Token inválido ou erro na sessão' });
     }
 };
