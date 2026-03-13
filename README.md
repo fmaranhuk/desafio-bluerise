@@ -1,42 +1,79 @@
-# Desafio Blue Rise - Sistema de Login Seguro
+# Desafio BlueRise - API de Autenticacao
 
-Este projeto é uma solução completa de autenticação desenvolvida para o desafio técnico da **Blue Rise Group**. A aplicação utiliza **Node.js**, **MongoDB** e **Redis** para garantir um sistema de login robusto, seguro e escalável.
-
-**APLICAÇÃO ONLINE (DEPLOY)**
-*desafio-bluerise-production.up.railway.app*
-
----
+Este projeto consiste em uma API de autenticacao desenvolvida em Node.js, utilizando MongoDB para persistencia de dados e Redis para gerenciamento de sessoes. A aplicacao permite o registro de usuarios, login com geracao de Token JWT e encerramento de sessao (logout).
 
 ## Tecnologias Utilizadas
 
-- **Runtime:** Node.js
-- **Framework:** Express
-- **Banco de Dados NoSQL:** MongoDB Atlas (Nuvem)
-- **Cache/Session:** Redis (Armazenamento de Tokens e Logout)
-- **Segurança:** JSON Web Tokens (JWT) e Bcrypt para hash de senhas
-- **Infraestrutura:** Docker e Docker Compose
-- **Hospedagem:** Railway (Deploy contínuo)
+* Node.js e Express
+* MongoDB e Mongoose
+* Redis
+* JSON Web Token (JWT)
+* Bcrypt (Hash de senhas)
+* Docker e Docker Compose
 
----
+## Estrutura do Projeto
 
-## Diferenciais Implementados
+* index.js: Ponto de entrada e conexoes principais.
+* src/controllers/AuthController.js: Logica de registro, login e logout.
+* src/middlewares/auth.js: Validacao de token e sessao no Redis.
+* src/models/Users.js: Esquema do usuario no MongoDB.
+* Dockerfile: Instrucoes de construcao da imagem da aplicacao.
+* docker-compose.yml: Orquestracao dos containers.
 
-Conforme sugerido no documento do desafio, foram aplicadas as seguintes melhorias:
+## Como Visualizar o Resultado
 
-1.  **Armazenamento em Redis:** Os tokens JWT são gerenciados via Redis para permitir a invalidação real do acesso no momento do Logout.
-2.  **Deploy em Ambiente Gratuito:** Aplicação totalmente funcional hospedada no Railway.
-3.  **Banco de Dados na Nuvem:** Integração com MongoDB Atlas.
-4.  **Containerização:** Dockerização completa da aplicação para facilitar o desenvolvimento local.
+O projeto ja esta em producao e pode ser testado diretamente atraves do link de deploy ou localmente via Docker.
 
----
+### 1. Execucao via Docker (Recomendado)
 
-## Como Rodar o Projeto Localmente
+1. Certifique-se de ter o Docker instalado.
+2. Na raiz do projeto, execute:
+   docker-compose up -d --build
 
-### Pré-requisitos
-- Docker e Docker Compose instalados.
+### 2. Enderecos Locais (Apos subir os containers)
 
-### Passo a Passo
-1. Clone o repositório:
-   ```bash
-   git clone [https://github.com/fmaranhuk/desafio-bluerise.git](https://github.com/fmaranhuk/desafio-bluerise.git)
-   cd desafio-bluerise
+* Aplicacao: http://localhost:3000
+* Banco de Dados (MongoDB): localhost:27017
+* Cache (Redis): localhost:6379
+
+### 3. Teste dos Endpoints (Deploy Online)
+
+URL Base: https://desafio-bluerise-production.up.railway.app
+
+* Registro: POST /register
+  Corpo (JSON): { "email": "usuario@email.com", "password": "123" }
+
+* Login: POST /login
+  Corpo (JSON): { "email": "usuario@email.com", "password": "123" }
+
+* Logout (Protegido): POST /logout
+  Cabecalho: Authorization: Bearer [TOKEN_AQUI]
+
+## Comandos Uteis de Gerenciamento
+
+Caso esteja utilizando Docker para rodar o projeto localmente, utilize os comandos abaixo:
+
+# Ver status dos containers
+docker-compose ps
+
+# Ver logs em tempo real da API
+docker-compose logs -f app
+
+# Ver logs do Banco de Dados (MongoDB)
+docker-compose logs -f mongodb
+
+# Ver logs do Cache (Redis)
+docker-compose logs -f redis
+
+# Parar os containers
+docker-compose down
+
+# Reiniciar a aplicacao
+docker-compose restart
+
+## Fluxo de Autenticacao
+
+1. Registro: Usuario salvo no MongoDB com senha criptografada.
+2. Login: Geracao de JWT e armazenamento do token no Redis com TTL.
+3. Middleware: Requisicoes protegidas validam o token diretamente no Redis.
+4. Logout: Remocao da chave no Redis, invalidando o acesso imediatamente.
