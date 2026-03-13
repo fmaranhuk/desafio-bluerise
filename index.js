@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const redis = require('redis');
 const cors = require('cors');
 const path = require('path');
-const routes = require('./src/routes');
+const routes = require('./src/routes/index.js');
 
 const app = express();
 
