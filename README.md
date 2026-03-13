@@ -34,7 +34,7 @@ O projeto ja esta em producao e pode ser testado diretamente atraves do link de 
 
 * Aplicacao: http://localhost:3000
 * Banco de Dados (MongoDB): localhost:27017
-* Cache (Redis): localhost:6379
+* Cache (Redis): localhost:6380
 
 ### 3. Teste dos Endpoints (Deploy Online)
 
