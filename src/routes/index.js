@@ -1,23 +1,42 @@
+require('dotenv').config();
 const express = require('express');
-const routes = express.Router();
-const AuthController = require('../controllers/AuthController');
-const authMiddleware = require('../middlewares/auth'); // Importamos o fiscal aqui em cima
+const mongoose = require('mongoose');
+const redis = require('redis');
+const cors = require('cors');
+const path = require('path');
+const routes = require('./src/routes');
 
-// 1. Rota de Cadastro
-routes.post('/register', AuthController.register);
+const app = express();
 
-// 2. Rota de Login (Onde o Redis será acionado)
-routes.post('/login', AuthController.login);
+app.use(cors());
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-// 3. Rota de Logout (Requisito do desafio: remove o token do Redis)
-routes.post('/logout', authMiddleware, AuthController.logout);
+// Configuração de conexão flexível
+const redisUrl = process.env.REDIS_URL || `redis://default:${process.env.REDIS_PASSWORD}@${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`;
 
-// 4. Rota de Teste Protegida (O dashboard)
-routes.get('/dashboard', authMiddleware, (req, res) => {
-    res.send({
-        message: "Parabéns! Você acessou uma rota protegida.",
-        userId: req.userId
-    });
+const redisClient = redis.createClient({
+    url: redisUrl
 });
 
-module.exports = routes;
+redisClient.on('error', (err) => console.log('⚠️ Redis offline:', err.message));
+
+(async () => {
+    try {
+        await redisClient.connect();
+        console.log('✅ Redis: Conectado com sucesso');
+    } catch (err) {
+        console.log('💡 App: Rodando sem Redis (Modo de segurança)');
+    }
+})();
+
+app.use(routes);
+
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log("✅ MongoDB: Conectado"))
+    .catch((err) => console.error("❌ MongoDB: Erro na conexão", err));
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Servidor online na porta: ${PORT}`);
+});
