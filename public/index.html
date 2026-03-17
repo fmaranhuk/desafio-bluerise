@@ -31,16 +31,21 @@
     <script>
         const msgElement = document.getElementById('msg');
 
+        // --- CONFIGURAÇÃO: COLOQUE AQUI A MESMA CHAVE DO SEU .ENV ---
+        const API_KEY = 'api_key123';
+
         // FUNÇÃO DE LOGIN
         async function entrar() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
             try {
-                // Rota relativa: funciona em qualquer domínio
                 const response = await fetch('/login', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': API_KEY // Envia a chave de segurança
+                    },
                     body: JSON.stringify({ email, password })
                 });
 
@@ -58,6 +63,7 @@
                 }
             } catch (err) {
                 msgElement.innerText = "Erro ao conectar com o servidor.";
+                msgElement.style.color = "red";
             }
         }
 
@@ -75,7 +81,10 @@
             try {
                 const response = await fetch('/register', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': API_KEY // Envia a chave de segurança
+                    },
                     body: JSON.stringify({ email, password })
                 });
 
@@ -89,6 +98,7 @@
                 }
             } catch (err) {
                 msgElement.innerText = "Erro ao cadastrar.";
+                msgElement.style.color = "red";
             }
         }
 
@@ -98,7 +108,10 @@
             try {
                 await fetch('/logout', {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'x-api-key': API_KEY // Também protegemos o logout
+                    }
                 });
             } catch (err) {
                 console.log("Erro ao avisar servidor do logout");
