@@ -77,15 +77,17 @@
                 });
 
                 const data = await response.json();
+
                 if (response.ok) {
-                    msgElement.innerText = "Cadastrado! Faça o login.";
+                    msgElement.innerText = "Usuário cadastrado! Agora faça login.";
                     msgElement.style.color = "blue";
                 } else {
-                    msgElement.innerText = "Erro: " + data.error;
+                    // Aqui ele vai mostrar: "Este e-mail já está cadastrado" ou o erro real
+                    msgElement.innerText = "Erro: " + (data.error || "Falha no registro");
                     msgElement.style.color = "red";
                 }
             } catch (err) {
-                msgElement.innerText = "Erro ao cadastrar.";
+                msgElement.innerText = "Erro ao conectar com o servidor.";
                 msgElement.style.color = "red";
             }
         }
