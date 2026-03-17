@@ -29,7 +29,7 @@ module.exports = {
             const { email, password } = req.body;
             const user = await User.findOne({ email }).select('+password');
 
-            // Mensagem genérica para segurança
+            // Mensagem genérica para segurança (Resolve ponto 10 do PDF)
             if (!user || !(await bcrypt.compare(password, user.password))) {
                 return res.status(401).send({ error: 'E-mail ou senha inválidos' });
             }
@@ -46,6 +46,7 @@ module.exports = {
 
             return res.send({ user, token });
         } catch (error) {
+            console.error(error);
             return res.status(500).send({ error: 'Erro interno no login' });
         }
     },
